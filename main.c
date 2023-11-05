@@ -70,6 +70,10 @@ void activate_relay() {
     // Code to activate the relay goes here
 }
 
+void output_to_terminal(){
+    // Code to output something to PC terminal goes here
+}
+
 // Main function
 int main(void)
 {
