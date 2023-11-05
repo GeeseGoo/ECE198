@@ -1,4 +1,3 @@
-// Include the STM32F1xx Hardware Abstraction Layer (HAL) library
 #include "stm32f1xx_hal.h"
 
 // Declare a handle for I2C communication
@@ -9,80 +8,66 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 
-// Function to calculate mean value of the measurements over past x days
-int mean(int measurements[], int days, int length)
-{
-    // Want to access the past x days from measurement
+// CO2 level thresholds
+#define CO2_LOW 800
+#define CO2_MEDIUM 1200
+
+// Buffer size for storing CO2 levels
+#define BUFFER_SIZE 100
+int co2_buffer[BUFFER_SIZE];
+int co2_buffer_pos = 0;
+
+// Function to calculate the mean of an array
+int mean(int measurements[], int days, int length) {
     int loop = length - days;
-    int sum{0};
-    // If x is greater than number of days measured, use all data available
-    if (loop < 0)
-    {
+    int sum = 0;
+    if (loop < 0) {
         loop = 0;
     }
-    
-    // Sum all of the past x days in measurements
-    for(int i = length - 1; i >= loop; i--)
-    {
+    for(int i = length - 1; i >= loop; i--) {
         sum += measurements[i];
     }
-    
-    // Return mean as sum of the measurements / number of days counted
     return sum / (length - loop);
 }
 
-// Function to calculate minimum value of the measurements over past x days
-int minimum(int measurements[], int days, int length)
-{
-    // Want to access the past x days from measurement
+// Function to find the minimum value in an array
+int minimum(int measurements[], int days, int length) {
     int loop = length - days;
-    // If x is greater than the number of days measured, use all data available
-    if (loop < 0)
-    {
+    if (loop < 0) {
         loop = 0;
     }
-
-    // Initialize min_value to the first measurement in the range
     int min_value = measurements[length - 1];
-
-    // Find the minimum value in the past x days in measurements
-    for(int i = length - 2; i >= loop; i--)
-    {
-        if (measurements[i] < min_value)
-        {
+    for(int i = length - 2; i >= loop; i--) {
+        if (measurements[i] < min_value) {
             min_value = measurements[i];
         }
     }
-
-    // Return the minimum value found
     return min_value;
 }
 
-// Function to calculate maximum value of the measurements over past x days
-int maximum(int measurements[], int days, int length)
-{
-    // Want to access the past x days from measurement
+// Function to find the maximum value in an array
+int maximum(int measurements[], int days, int length) {
     int loop = length - days;
-    // If x is greater than the number of days measured, use all data available
-    if (loop < 0)
-    {
+    if (loop < 0) {
         loop = 0;
     }
-
-    // Initialize max_value to the first measurement in the range
     int max_value = measurements[length - 1];
-
-    // Find the maximum value in the past x days in measurements
-    for(int i = length - 2; i >= loop; i--)
-    {
-        if (measurements[i] > max_value)
-        {
+    for(int i = length - 2; i >= loop; i--) {
+        if (measurements[i] > max_value) {
             max_value = measurements[i];
         }
     }
-
-    // Return the maximum value found
     return max_value;
+}
+
+// Function to turn on an LED
+void turn_on_led(uint16_t GPIO_Pin) {
+    HAL_GPIO_WritePin(GPIOA, GPIO_Pin, GPIO_PIN_SET);
+}
+
+// Function to activate a relay
+void activate_relay() {
+    // Code to activate the relay goes here
 }
 
 // Main function
@@ -122,7 +107,33 @@ int main(void)
     HAL_I2C_Master_Receive(&hi2c1, TMP102_ADDR, buf, 18, HAL_MAX_DELAY);
 
     // Process the received data from the CO2 sensor
-    // ...
+    int co2_level = (buf[0] << 8) | buf[1];
+
+    // Store the CO2 level in the buffer
+    co2_buffer[co2_buffer_pos] = co2_level;
+    co2_buffer_pos = (co2_buffer_pos + 1) % BUFFER_SIZE;
+
+    // Calculate the mean, minimum, and maximum CO2 levels
+    int mean_co2 = mean(co2_buffer, days, BUFFER_SIZE);
+    int min_co2 = minimum(co2_buffer, days, BUFFER_SIZE);
+    int max_co2 = maximum(co2_buffer, days, BUFFER_SIZE);
+
+    // Output the CO2 level, mean, minimum, and maximum to the terminal
+    // Note: You need to implement a function to output data to the terminal via UART
+    output_to_terminal("CO2 level: %d ppm\n", co2_level);
+    output_to_terminal("Mean CO2 level: %d ppm\n", mean_co2);
+    output_to_terminal("Min CO2 level: %d ppm\n", min_co2);
+    output_to_terminal("Max CO2 level: %d ppm\n", max_co2);
+
+    // Activate LEDs and a relay if CO2 levels are too high
+    if (co2_level > CO2_MEDIUM) {
+        turn_on_led(RED_LED);
+        activate_relay();
+    } else if (co2_level > CO2_LOW) {
+        turn_on_led(YELLOW_LED);
+    } else {
+        turn_on_led(GREEN_LED);
+    }
 
     // Delay for 500ms
     HAL_Delay(500);
