@@ -1,43 +1,4 @@
-/* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
-/* USER CODE END Header */
-/* Includes ------------------------------------------------------------------*/
-#include "main.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-#include "string.h"
-#include "stdio.h"
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
@@ -110,22 +71,6 @@ int main(void)
   while (1)
   {
 	  uint8_t buf[12] = {0};
-//	  ret = HAL_I2C_Master_Transmit(&hi2c1, 0x1A << 1, buf, 1, HAL_MAX_DELAY);
-//	  if (ret != HAL_OK)
-//	  {
-//		  strcpy((char*)buf, "Error T\r\n");
-//	  }
-//	  else
-//	  {
-//		  HAL_Delay(1500);
-//		  ret = HAL_I2C_Master_Receive(&hi2c1, 0x1A << 1 | 1, buf, 5, HAL_MAX_DELAY);
-//		  hal_i2c_master_
-//		  if (ret != HAL_OK)
-//		  	  {
-//		  		  strcpy((char*)buf, "Error M\r\n");
-//		  	  }
-//
-//		  sprintf((char*)buf, "%x\r\n", buf);
 
 	  HAL_Delay(1500);
 	  ret = HAL_I2C_Master_Transmit(&hi2c1, 0x34, buf, 1, HAL_MAX_DELAY);
@@ -144,19 +89,6 @@ int main(void)
 		{
 			sprintf((char*)buf, "%d\r\n", buf[4] + buf[3] + buf[2]);
 		}
-
-//	  }
-//	  uint16_t penis = 0x21b1;
-
-//	  ret = HAL_I2C_IsDeviceReady(&hi2c1, 0X1A << 1, 3, 5);
-//	  if (ret != HAL_OK)
-//	  {
-//		  strcpy((char*)buf, "Error p\r\n");
-//	  }
-//	  else
-//	  {
-//		  strcpy((char*)buf, "Penis\r\n");
-//	  }
 	  HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
 	  HAL_Delay(500);
     /* USER CODE END WHILE */
